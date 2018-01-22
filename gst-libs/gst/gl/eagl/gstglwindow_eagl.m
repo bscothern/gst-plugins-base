@@ -179,41 +179,48 @@ gst_gl_window_eagl_send_message_async (GstGLWindow * window,
 static void
 draw_cb (gpointer data)
 {
-  GstGLWindowEagl *window_eagl = data;
-  GstGLWindow *window = GST_GL_WINDOW (window_eagl);
-  GstGLContext *context = gst_gl_window_get_context (window);
-  GstGLContextEagl *eagl_context = GST_GL_CONTEXT_EAGL (context);
+  void (^main_thread_block)(void) = ^{
+    GstGLWindowEagl *window_eagl = data;
+    GstGLWindow *window = GST_GL_WINDOW (window_eagl);
+    GstGLContext *context = gst_gl_window_get_context (window);
+    GstGLContextEagl *eagl_context = GST_GL_CONTEXT_EAGL (context);
 
-  if (window_eagl->priv->view) {
-    CGSize size;
-    CAEAGLLayer *eagl_layer;
+    if (window_eagl->priv->view) {
+      CGSize size;
+      CAEAGLLayer *eagl_layer;
 
-    eagl_layer = (CAEAGLLayer *)[GS_GL_WINDOW_EAGL_VIEW(window_eagl) layer];
-    size = eagl_layer.frame.size;
+      eagl_layer = (CAEAGLLayer *)[GS_GL_WINDOW_EAGL_VIEW(window_eagl) layer];
+      size = eagl_layer.frame.size;
 
-    if (window->queue_resize || window_eagl->priv->window_width != size.width ||
-        window_eagl->priv->window_height != size.height) {
+      if (window->queue_resize || window_eagl->priv->window_width != size.width ||
+          window_eagl->priv->window_height != size.height) {
 
-      window_eagl->priv->window_width = size.width;
-      window_eagl->priv->window_height = size.height;
+        window_eagl->priv->window_width = size.width;
+        window_eagl->priv->window_height = size.height;
 
-      gst_gl_context_eagl_resize (eagl_context);
+        gst_gl_context_eagl_resize (eagl_context);
 
-      gst_gl_window_resize (window, window_eagl->priv->window_width,
-            window_eagl->priv->window_height);
+        gst_gl_window_resize (window, window_eagl->priv->window_width,
+              window_eagl->priv->window_height);
+      }
     }
-  }
 
-  gst_gl_context_eagl_prepare_draw (eagl_context);
+    gst_gl_context_eagl_prepare_draw (eagl_context);
 
-  if (window->draw)
-    window->draw (window->draw_data);
+    if (window->draw)
+      window->draw (window->draw_data);
 
-  gst_gl_context_swap_buffers (context);
+    gst_gl_context_swap_buffers (context);
 
-  gst_gl_context_eagl_finish_draw (eagl_context);
+    gst_gl_context_eagl_finish_draw (eagl_context);
 
-  gst_object_unref (context);
+    gst_object_unref (context);
+  };
+
+  if ([[NSThread currentThread] isMainThread])
+    main_thread_block ();
+  else
+    dispatch_sync(dispatch_get_main_queue (), main_thread_block);
 }
 
 static void

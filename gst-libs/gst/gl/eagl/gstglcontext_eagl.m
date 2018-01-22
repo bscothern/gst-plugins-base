@@ -150,17 +150,20 @@ gst_gl_context_eagl_release_layer (GstGLContext * context)
 void
 gst_gl_context_eagl_update_layer (GstGLContext * context)
 {
-  GLuint framebuffer;
-  GLuint color_renderbuffer;
-  GLuint depth_renderbuffer;
-  GLint width;
-  GLint height;
-  CAEAGLLayer *eagl_layer;
+  printf("gst_gl_context_eagl_update_layer\n");
+  __block GLuint framebuffer;
+  __block GLuint color_renderbuffer;
+  __block GLuint depth_renderbuffer;
+  __block GLint width;
+  __block GLint height;
+  __block CAEAGLLayer *eagl_layer;
   GLenum status;
-  GstGLContextEagl *context_eagl = GST_GL_CONTEXT_EAGL (context);
+  __block GstGLContextEagl *context_eagl = GST_GL_CONTEXT_EAGL (context);
   GstGLContextEaglPrivate *priv = context_eagl->priv;
-  UIView *window_handle = nil;
-  GstGLWindow *window = gst_gl_context_get_window (context);
+  __block UIView *window_handle = nil;
+  __block GstGLWindow *window = gst_gl_context_get_window (context);
+  void (^main_thread_block)(void) = nil;
+    
   if (window)
     window_handle = (__bridge UIView *)((void *)gst_gl_window_get_window_handle (window));
 
@@ -174,31 +177,38 @@ gst_gl_context_eagl_update_layer (GstGLContext * context)
 
   if (priv->eagl_layer)
     gst_gl_context_eagl_release_layer (context);
+  
+  main_thread_block = ^{
+    eagl_layer = (CAEAGLLayer *)[window_handle layer];
+    [EAGLContext setCurrentContext:GS_GL_CONTEXT_EAGL_CONTEXT(context_eagl)];
 
-  eagl_layer = (CAEAGLLayer *)[window_handle layer];
-  [EAGLContext setCurrentContext:GS_GL_CONTEXT_EAGL_CONTEXT(context_eagl)];
-
-  /* Allocate framebuffer */
-  glGenFramebuffers (1, &framebuffer);
-  glBindFramebuffer (GL_FRAMEBUFFER, framebuffer);
-  /* Allocate color render buffer */
-  glGenRenderbuffers (1, &color_renderbuffer);
-  glBindRenderbuffer (GL_RENDERBUFFER, color_renderbuffer);
-  [GS_GL_CONTEXT_EAGL_CONTEXT(context_eagl) renderbufferStorage: GL_RENDERBUFFER fromDrawable:eagl_layer];
-  glFramebufferRenderbuffer (GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-      GL_RENDERBUFFER, color_renderbuffer);
-  /* Get renderbuffer width/height */
-  glGetRenderbufferParameteriv (GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH,
-      &width);
-  glGetRenderbufferParameteriv (GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT,
-      &height);
-  /* allocate depth render buffer */
-  glGenRenderbuffers (1, &depth_renderbuffer);
-  glBindRenderbuffer (GL_RENDERBUFFER, depth_renderbuffer);
-  glRenderbufferStorage (GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width,
-      height);
-  glFramebufferRenderbuffer (GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-      GL_RENDERBUFFER, depth_renderbuffer);
+    /* Allocate framebuffer */
+    glGenFramebuffers (1, &framebuffer);
+    glBindFramebuffer (GL_FRAMEBUFFER, framebuffer);
+    /* Allocate color render buffer */
+    glGenRenderbuffers (1, &color_renderbuffer);
+    glBindRenderbuffer (GL_RENDERBUFFER, color_renderbuffer);
+    [GS_GL_CONTEXT_EAGL_CONTEXT(context_eagl) renderbufferStorage: GL_RENDERBUFFER fromDrawable:eagl_layer];
+    glFramebufferRenderbuffer (GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+        GL_RENDERBUFFER, color_renderbuffer);
+    /* Get renderbuffer width/height */
+    glGetRenderbufferParameteriv (GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH,
+        &width);
+    glGetRenderbufferParameteriv (GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT,
+        &height);
+    /* allocate depth render buffer */
+    glGenRenderbuffers (1, &depth_renderbuffer);
+    glBindRenderbuffer (GL_RENDERBUFFER, depth_renderbuffer);
+    glRenderbufferStorage (GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width,
+        height);
+    glFramebufferRenderbuffer (GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+        GL_RENDERBUFFER, depth_renderbuffer);
+  };
+    
+  if ([[NSThread currentThread] isMainThread])
+    main_thread_block ();
+  else
+    dispatch_sync(dispatch_get_main_queue (), main_thread_block);
 
   /* check creation status */
   status = glCheckFramebufferStatus (GL_FRAMEBUFFER);
@@ -225,15 +235,24 @@ gst_gl_context_eagl_create_context (GstGLContext * context, GstGLAPI gl_api,
 {
   GstGLContextEagl *context_eagl = GST_GL_CONTEXT_EAGL (context);
   GstGLContextEaglPrivate *priv = context_eagl->priv;
-  EAGLSharegroup *share_group;
+  __block EAGLSharegroup *share_group;
 
-  if (other_context) {
-    EAGLContext *external_gl_context = (__bridge EAGLContext *)(void *)
-        gst_gl_context_get_gl_context (other_context);
-    share_group = [external_gl_context sharegroup];
-  } else {
-    share_group = nil;
-  }
+  void (^main_thread_block)(void) = ^{
+    if (other_context) {
+      EAGLContext *external_gl_context = (__bridge EAGLContext *)(void *)
+          gst_gl_context_get_gl_context (other_context);
+      share_group = [external_gl_context sharegroup];
+    } else {
+      share_group = nil;
+    }
+  };
+
+  main_thread_block ();
+
+//  if ([[NSThread currentThread] isMainThread])
+//    main_thread_block ();
+//  else
+//    dispatch_sync(dispatch_get_main_queue (), main_thread_block);
 
   priv->eagl_context = (__bridge_retained gpointer)[[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3 sharegroup:share_group];
   if (!priv->eagl_context) {
@@ -279,6 +298,7 @@ gst_gl_context_eagl_choose_format (GstGLContext * context, GError ** error)
   GstGLContextEagl *context_eagl;
   GstGLWindow *window;
   UIView *window_handle = nil;
+  void (^main_thread_block)(void) = nil;
 
   context_eagl = GST_GL_CONTEXT_EAGL (context);
   window = gst_gl_context_get_window (context);
@@ -293,15 +313,22 @@ gst_gl_context_eagl_choose_format (GstGLContext * context, GError ** error)
     gst_object_unref (window);
     return TRUE;
   }
-  
-  CAEAGLLayer *eagl_layer;
-  NSDictionary * dict =[NSDictionary dictionaryWithObjectsAndKeys:
+
+  main_thread_block = ^{
+    CAEAGLLayer *eagl_layer;
+    NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
       [NSNumber numberWithBool:NO], kEAGLDrawablePropertyRetainedBacking,
       kEAGLColorFormatRGBA8, kEAGLDrawablePropertyColorFormat, nil];
 
-  eagl_layer = (CAEAGLLayer *)[window_handle layer];
-  [eagl_layer setOpaque:YES];
-  [eagl_layer setDrawableProperties:dict];
+    eagl_layer = (CAEAGLLayer *)[window_handle layer];
+    [eagl_layer setOpaque:YES];
+    [eagl_layer setDrawableProperties:dict];
+  };
+
+  if ([[NSThread currentThread] isMainThread])
+    main_thread_block ();
+  else
+    dispatch_sync(dispatch_get_main_queue (), main_thread_block);
 
   gst_object_unref (window);
 
