@@ -179,6 +179,7 @@ gst_gl_window_eagl_send_message_async (GstGLWindow * window,
 static void
 draw_cb (gpointer data)
 {
+  printf("GST: draw_cb\n");
   void (^main_thread_block)(void) = ^{
     GstGLWindowEagl *window_eagl = data;
     GstGLWindow *window = GST_GL_WINDOW (window_eagl);
@@ -217,10 +218,12 @@ draw_cb (gpointer data)
     gst_object_unref (context);
   };
 
-  if ([[NSThread currentThread] isMainThread])
-    main_thread_block ();
-  else
-    dispatch_sync(dispatch_get_main_queue (), main_thread_block);
+  main_thread_block ();
+
+//  if ([[NSThread currentThread] isMainThread])
+//    main_thread_block ();
+//  else
+//    dispatch_sync(dispatch_get_main_queue (), main_thread_block);
 }
 
 static void

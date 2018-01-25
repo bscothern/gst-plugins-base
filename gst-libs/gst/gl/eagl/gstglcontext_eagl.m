@@ -150,7 +150,7 @@ gst_gl_context_eagl_release_layer (GstGLContext * context)
 void
 gst_gl_context_eagl_update_layer (GstGLContext * context)
 {
-  printf("gst_gl_context_eagl_update_layer\n");
+  printf("GST: gst_gl_context_eagl_update_layer\n");
   __block GLuint framebuffer;
   __block GLuint color_renderbuffer;
   __block GLuint depth_renderbuffer;
@@ -233,6 +233,7 @@ static gboolean
 gst_gl_context_eagl_create_context (GstGLContext * context, GstGLAPI gl_api,
     GstGLContext * other_context, GError ** error)
 {
+  printf("GST: gst_gl_context_eagl_create_context\n");
   GstGLContextEagl *context_eagl = GST_GL_CONTEXT_EAGL (context);
   GstGLContextEaglPrivate *priv = context_eagl->priv;
   __block EAGLSharegroup *share_group;
@@ -295,6 +296,7 @@ gst_gl_context_eagl_destroy_context (GstGLContext * context)
 static gboolean
 gst_gl_context_eagl_choose_format (GstGLContext * context, GError ** error)
 {
+  printf("GST: gst_gl_context_eagl_choose_format\n");
   GstGLContextEagl *context_eagl;
   GstGLWindow *window;
   UIView *window_handle = nil;
@@ -325,10 +327,12 @@ gst_gl_context_eagl_choose_format (GstGLContext * context, GError ** error)
     [eagl_layer setDrawableProperties:dict];
   };
 
-  if ([[NSThread currentThread] isMainThread])
     main_thread_block ();
-  else
-    dispatch_sync(dispatch_get_main_queue (), main_thread_block);
+
+//  if ([[NSThread currentThread] isMainThread])
+//    main_thread_block ();
+//  else
+//    dispatch_sync(dispatch_get_main_queue (), main_thread_block);
 
   gst_object_unref (window);
 
