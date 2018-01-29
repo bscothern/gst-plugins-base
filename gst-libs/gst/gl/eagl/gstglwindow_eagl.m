@@ -180,7 +180,7 @@ static void
 draw_cb (gpointer data)
 {
   printf("GST: draw_cb\n");
-  void (^main_thread_block)(void) = ^{
+//  void (^main_thread_block)(void) = ^{
     GstGLWindowEagl *window_eagl = data;
     GstGLWindow *window = GST_GL_WINDOW (window_eagl);
     GstGLContext *context = gst_gl_window_get_context (window);
@@ -216,9 +216,9 @@ draw_cb (gpointer data)
     gst_gl_context_eagl_finish_draw (eagl_context);
 
     gst_object_unref (context);
-  };
+//  };
 
-  main_thread_block ();
+//  main_thread_block ();
 
 //  if ([[NSThread currentThread] isMainThread])
 //    main_thread_block ();

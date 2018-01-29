@@ -238,7 +238,7 @@ gst_gl_context_eagl_create_context (GstGLContext * context, GstGLAPI gl_api,
   GstGLContextEaglPrivate *priv = context_eagl->priv;
   __block EAGLSharegroup *share_group;
 
-  void (^main_thread_block)(void) = ^{
+//  void (^main_thread_block)(void) = ^{
     if (other_context) {
       EAGLContext *external_gl_context = (__bridge EAGLContext *)(void *)
           gst_gl_context_get_gl_context (other_context);
@@ -246,9 +246,9 @@ gst_gl_context_eagl_create_context (GstGLContext * context, GstGLAPI gl_api,
     } else {
       share_group = nil;
     }
-  };
+//  };
 
-  main_thread_block ();
+//  main_thread_block ();
 
 //  if ([[NSThread currentThread] isMainThread])
 //    main_thread_block ();
@@ -316,7 +316,7 @@ gst_gl_context_eagl_choose_format (GstGLContext * context, GError ** error)
     return TRUE;
   }
 
-  main_thread_block = ^{
+//  main_thread_block = ^{
     CAEAGLLayer *eagl_layer;
     NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
       [NSNumber numberWithBool:NO], kEAGLDrawablePropertyRetainedBacking,
@@ -325,9 +325,9 @@ gst_gl_context_eagl_choose_format (GstGLContext * context, GError ** error)
     eagl_layer = (CAEAGLLayer *)[window_handle layer];
     [eagl_layer setOpaque:YES];
     [eagl_layer setDrawableProperties:dict];
-  };
+//  };
 
-    main_thread_block ();
+//    main_thread_block ();
 
 //  if ([[NSThread currentThread] isMainThread])
 //    main_thread_block ();
