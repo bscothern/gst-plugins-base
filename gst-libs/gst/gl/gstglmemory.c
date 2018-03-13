@@ -525,10 +525,12 @@ gst_gl_memory_texsubimage (GstGLMemory * gl_mem, gpointer read_pointer)
   gl = context->gl_vtable;
 
   gl_type = GL_UNSIGNED_BYTE;
-  if (gl_mem->tex_format == GST_GL_RGB565)
-    gl_type = GL_UNSIGNED_SHORT_5_6_5;
-
   gl_format = gl_mem->tex_format;
+  if (gl_mem->tex_format == GST_GL_RGB565) {
+    gl_format = GST_GL_RGB;
+    gl_type = GL_UNSIGNED_SHORT_5_6_5;
+  }
+
   gl_target = gst_gl_texture_target_to_gl (gl_mem->tex_target);
 
   if (USING_OPENGL (context) || USING_GLES3 (context)
@@ -619,7 +621,7 @@ _gl_tex_unmap (GstGLMemory * gl_mem, GstMapInfo * info)
 
 /**
  * gst_gl_memory_copy_teximage:
- * @gl_mem: the source #GstGLMemory
+ * @src: the source #GstGLMemory
  * @tex_id: the destination texture id
  * @out_target: the destination #GstGLTextureTarget
  * @out_tex_format: the destination #GstGLFormat
@@ -1148,7 +1150,7 @@ _gst_gl_video_allocation_params_set_video_alignment (GstGLVideoAllocationParams
 }
 
 /**
- * gst_gl_video_allocation_params_init_full:
+ * gst_gl_video_allocation_params_init_full: (skip)
  * @params: a #GstGLVideoAllocationParams to initialize
  * @struct_size: the size of the struct in @params
  * @alloc_flags: some allocation flags

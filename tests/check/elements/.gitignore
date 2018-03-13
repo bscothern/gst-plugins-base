@@ -4,11 +4,14 @@ alsa
 appsink
 appsrc
 audioconvert
+audiointerleave
+audiomixer
 audiorate
 audioresample
 audiotestsrc
 decodebin
 encodebin
+glbin
 glimagesink
 libvisual
 multifdsink

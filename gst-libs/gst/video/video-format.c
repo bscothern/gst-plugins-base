@@ -4616,13 +4616,11 @@ pack_GRAY10_LE32 (const GstVideoFormatInfo * info, GstVideoPackFlags flags,
     guint32 Y = 0;
 
     for (c = 0; c < num_comps; c++) {
-      Y <<= 10;
-      Y |= s[soff + 1] >> 6;
+      Y |= s[soff + 1] >> 6 << (10 * c);
+      soff += 4;
     }
 
     GST_WRITE_UINT32_LE (dy + i, Y);
-
-    soff += 4;
   }
 }
 
@@ -4745,31 +4743,31 @@ pack_NV12_10LE32 (const GstVideoFormatInfo * info, GstVideoPackFlags flags,
     guint32 Y = 0;
 
     for (c = 0; c < num_comps; c++) {
-      Y <<= 10;
-      Y |= s[soff + 1] >> 6;
+      Y |= s[soff + 1] >> 6 << (10 * c);
 
-      if (!IS_CHROMA_LINE_420 (y, flags))
-        continue;
-
-      switch ((pix + c) % 6) {
-        case 0:
-          UV = s[soff + 2] >> 6;
-          UV |= s[soff + 3] >> 6 << 10;
-          break;
-        case 2:
-          UV |= s[soff + 2] >> 6 << 20;
-          GST_WRITE_UINT32_LE (duv + i, UV);
-          UV = s[soff + 3] >> 6;
-          break;
-        case 4:
-          UV |= s[soff + 2] >> 6 << 10;
-          UV |= s[soff + 3] >> 6 << 20;
-          GST_WRITE_UINT32_LE (duv + i, UV);
-          break;
-        default:
-          /* keep value */
-          break;
+      if (IS_CHROMA_LINE_420 (y, flags)) {
+        switch ((pix + c) % 6) {
+          case 0:
+            UV = s[soff + 2] >> 6;
+            UV |= s[soff + 3] >> 6 << 10;
+            break;
+          case 2:
+            UV |= s[soff + 2] >> 6 << 20;
+            GST_WRITE_UINT32_LE (duv + i, UV);
+            UV = s[soff + 3] >> 6;
+            break;
+          case 4:
+            UV |= s[soff + 2] >> 6 << 10;
+            UV |= s[soff + 3] >> 6 << 20;
+            GST_WRITE_UINT32_LE (duv + i, UV);
+            break;
+          default:
+            /* keep value */
+            break;
+        }
       }
+
+      soff += 4;
     }
 
     GST_WRITE_UINT32_LE (dy + i, Y);
@@ -4777,7 +4775,6 @@ pack_NV12_10LE32 (const GstVideoFormatInfo * info, GstVideoPackFlags flags,
     if (IS_CHROMA_LINE_420 (y, flags) && num_comps < 3)
       GST_WRITE_UINT32_LE (duv + i, UV);
 
-    soff += 4;
   }
 }
 
@@ -4898,8 +4895,7 @@ pack_NV16_10LE32 (const GstVideoFormatInfo * info, GstVideoPackFlags flags,
     guint32 Y = 0;
 
     for (c = 0; c < num_comps; c++) {
-      Y <<= 10;
-      Y |= s[soff + 1] >> 6;
+      Y |= s[soff + 1] >> 6 << (10 * c);
 
       switch ((pix + c) % 6) {
         case 0:
@@ -4920,14 +4916,14 @@ pack_NV16_10LE32 (const GstVideoFormatInfo * info, GstVideoPackFlags flags,
           /* keep value */
           break;
       }
+
+      soff += 4;
     }
 
     GST_WRITE_UINT32_LE (dy + i, Y);
 
     if (num_comps < 3)
       GST_WRITE_UINT32_LE (duv + i, UV);
-
-    soff += 4;
   }
 }
 
@@ -4945,6 +4941,7 @@ typedef struct
 #define DPTH888          8, 3, { 0, 0, 0, 0 }, { 8, 8, 8, 0 }
 #define DPTH8888         8, 4, { 0, 0, 0, 0 }, { 8, 8, 8, 8 }
 #define DPTH8880         8, 4, { 0, 0, 0, 0 }, { 8, 8, 8, 0 }
+#define DPTH10           10, 1, { 0, 0, 0, 0 }, { 10, 0, 0, 0 }
 #define DPTH10_10_10     10, 3, { 0, 0, 0, 0 }, { 10, 10, 10, 0 }
 #define DPTH10_10_10_10  10, 4, { 0, 0, 0, 0 }, { 10, 10, 10, 10 }
 #define DPTH10_10_10_HI  16, 3, { 6, 6, 6, 0 }, { 10, 10, 10, 0 }
@@ -5243,7 +5240,7 @@ static const VideoFormat formats[] = {
       PSTR222, PLANE012, OFFS0, SUB444, PACK_Y444_12BE),
   MAKE_YUV_LE_FORMAT (Y444_12LE, "raw video", 0x00000000, DPTH12_12_12,
       PSTR222, PLANE012, OFFS0, SUB444, PACK_Y444_12LE),
-  MAKE_GRAY_C_LE_FORMAT (GRAY10_LE32, "raw video", DPTH8, PSTR0, PLANE0, OFFS0,
+  MAKE_GRAY_C_LE_FORMAT (GRAY10_LE32, "raw video", DPTH10, PSTR0, PLANE0, OFFS0,
       SUB4, PACK_GRAY10_LE32),
   MAKE_YUV_C_LE_FORMAT (NV12_10LE32, "raw video",
       GST_MAKE_FOURCC ('X', 'V', '1', '5'), DPTH10_10_10, PSTR0, PLANE011,

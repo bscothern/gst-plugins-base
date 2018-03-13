@@ -30,6 +30,7 @@
       </para>
       <xi:include href="xml/gstdmabuf.xml" />
       <xi:include href="xml/gstfdmemory.xml" />
+      <xi:include href="xml/gstphysmemoryallocator.xml" />
     </chapter>
 
     <chapter id="gstreamer-app">
@@ -55,6 +56,7 @@
       </para>
       <xi:include href="xml/gstaudio.xml" />
       <xi:include href="xml/gstaudiometa.xml" />
+      <xi:include href="xml/gstaudioaggregator.xml" />
       <xi:include href="xml/gstaudiocdsrc.xml" />
       <xi:include href="xml/gstaudioclock.xml" />
       <xi:include href="xml/gstaudiodecoder.xml" />
@@ -291,6 +293,54 @@
   <index id="api-index-deprecated" role="deprecated">
     <title>Index of deprecated API</title>
     <xi:include href="xml/api-index-deprecated.xml"><xi:fallback /></xi:include>
+  </index>
+  <index>
+    <title>Index of new API in 1.14</title>
+    <xi:include href="xml/api-index-1.14.xml"><xi:fallback /></xi:include>
+  </index>
+  <index>
+    <title>Index of new API in 1.12</title>
+    <xi:include href="xml/api-index-1.12.xml"><xi:fallback /></xi:include>
+  </index>
+  <index>
+    <title>Index of new API in 1.10</title>
+    <xi:include href="xml/api-index-1.10.xml"><xi:fallback /></xi:include>
+  </index>
+  <index>
+    <title>Index of new API in 1.8.1</title>
+    <xi:include href="xml/api-index-1.8.1.xml"><xi:fallback /></xi:include>
+  </index>
+  <index>
+    <title>Index of new API in 1.8</title>
+    <xi:include href="xml/api-index-1.8.xml"><xi:fallback /></xi:include>
+  </index>
+  <index>
+    <title>Index of new API in 1.6.1</title>
+    <xi:include href="xml/api-index-1.6.1.xml"><xi:fallback /></xi:include>
+  </index>
+  <index>
+    <title>Index of new API in 1.6</title>
+    <xi:include href="xml/api-index-1.6.xml"><xi:fallback /></xi:include>
+  </index>
+  <index>
+    <title>Index of new API in 1.4</title>
+    <xi:include href="xml/api-index-1.4.xml"><xi:fallback /></xi:include>
+  </index>
+  <index>
+    <title>Index of new API in 1.2.2</title>
+    <xi:include href="xml/api-index-1.2.2.xml"><xi:fallback /></xi:include>
+  </index>
+  <index>
+    <title>Index of new API in 1.2.1</title>
+    <xi:include href="xml/api-index-1.2.1.xml"><xi:fallback /></xi:include>
+  </index>
+  <index>
+    <title>Index of new API in 1.2</title>
+    <xi:include href="xml/api-index-1.2.xml"><xi:fallback /></xi:include>
+  </index>
+  <index>
+    <title>Index of new API in 1.0.3</title>
+    <xi:include href="xml/api-index-1.0.3.xml"><xi:fallback /></xi:include>
   </index>
 
   <xi:include href="xml/annotation-glossary.xml"><xi:fallback /></xi:include>

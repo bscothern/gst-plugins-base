@@ -43,6 +43,7 @@ check_gl=\
     libs/gstglshader \
     libs/gstglheaders \
     elements/glimagesink \
+    elements/glbin \
     pipelines/gl-launch-lines
 else
 check_gl=
@@ -89,6 +90,12 @@ if USE_PLUGIN_AUDIOCONVERT
 check_audioconvert = elements/audioconvert
 else
 check_audioconvert =
+endif
+
+if USE_PLUGIN_AUDIOMIXER
+check_audiomixer = elements/audiointerleave elements/audiomixer
+else
+check_audiomixer =
 endif
 
 if USE_PLUGIN_PLAYBACK
@@ -172,7 +179,7 @@ check_adder =
 endif
 
 if HAVE_ORC
-check_orc = orc/video orc/audio orc/adder orc/volume orc/videotestsrc
+check_orc = orc/video orc/audio orc/audiomixer orc/adder orc/volume orc/videotestsrc
 else
 check_orc =
 endif
@@ -252,6 +259,7 @@ check_PROGRAMS = \
 	$(check_adder) \
 	$(check_app) \
 	$(check_audioconvert) \
+	$(check_audiomixer) \
 	$(check_audiorate) \
 	$(check_audioresample) \
 	$(check_audiotestsrc) \
@@ -505,6 +513,15 @@ elements_glimagesink_LDADD = \
 	$(top_builddir)/gst-libs/gst/video/libgstvideo-@GST_API_VERSION@.la \
 	$(GST_BASE_LIBS) $(GST_LIBS) $(LDADD)
 
+elements_glbin_CFLAGS = \
+	$(GST_PLUGINS_BASE_CFLAGS) \
+	$(GST_BASE_CFLAGS) $(GST_CFLAGS) $(GL_CFLAGS) $(AM_CFLAGS)
+
+elements_glbin_LDADD = \
+	$(top_builddir)/gst-libs/gst/gl/libgstgl-@GST_API_VERSION@.la \
+	$(top_builddir)/gst-libs/gst/video/libgstvideo-@GST_API_VERSION@.la \
+	$(GST_BASE_LIBS) $(GST_LIBS) $(LDADD)
+
 libs_navigation_CFLAGS = \
 	$(GST_PLUGINS_BASE_CFLAGS) \
         $(GST_BASE_CFLAGS) \
@@ -625,6 +642,21 @@ elements_audioconvert_LDADD = \
 	$(top_builddir)/gst-libs/gst/audio/libgstaudio-@GST_API_VERSION@.la \
 	$(GST_BASE_LIBS) \
 	$(LDADD)
+
+elements_audiomixer_LDADD = \
+	$(top_builddir)/gst-libs/gst/audio/libgstaudio-@GST_API_VERSION@.la \
+	$(GST_BASE_LIBS) $(GST_CONTROLLER_LIBS) \
+	$(LDADD)
+elements_audiomixer_CFLAGS = \
+	$(GST_PLUGINS_BASE_CFLAGS) \
+	$(GST_BASE_CFLAGS) $(GST_CONTROLLER_CFLAGS) \
+	$(AM_CFLAGS)
+
+elements_audiointerleave_LDADD = \
+	$(top_builddir)/gst-libs/gst/audio/libgstaudio-@GST_API_VERSION@.la \
+	$(GST_BASE_LIBS) $(LDADD)
+elements_audiointerleave_CFLAGS = \
+	$(GST_PLUGINS_BASE_CFLAGS) $(GST_BASE_CFLAGS) $(AM_CFLAGS)
 
 elements_audiorate_LDADD = \
 	$(top_builddir)/gst-libs/gst/audio/libgstaudio-@GST_API_VERSION@.la \
@@ -841,6 +873,9 @@ nodist_orc_audio_SOURCES = orc/audio.c
 orc_adder_CFLAGS = $(ORC_CFLAGS)
 orc_adder_LDADD = $(ORC_LIBS) -lorc-test-0.4
 nodist_orc_adder_SOURCES = orc/adder.c
+orc_audiomixer_CFLAGS = $(ORC_CFLAGS)
+orc_audiomixer_LDADD = $(ORC_LIBS) -lorc-test-0.4
+nodist_orc_audiomixer_SOURCES = orc/audiomixer.c
 orc_volume_CFLAGS = $(ORC_CFLAGS)
 orc_volume_LDADD = $(ORC_LIBS) -lorc-test-0.4
 nodist_orc_volume_SOURCES = orc/volume.c
@@ -854,6 +889,10 @@ orc/video.c: $(top_srcdir)/gst-libs/gst/video/video-orc.orc
 
 orc/audio.c: $(top_srcdir)/gst-libs/gst/audio/gstaudiopack.orc
 	$(MKDIR_P) orc/
+	$(ORCC) --test -o $@ $<
+
+orc/audiomixer.c: $(top_srcdir)/gst/audiomixer/gstaudiomixerorc.orc
+	$(MKDIR_P) orc
 	$(ORCC) --test -o $@ $<
 
 orc/adder.c: $(top_srcdir)/gst/adder/gstadderorc.orc

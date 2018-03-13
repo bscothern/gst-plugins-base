@@ -62,6 +62,9 @@
 #if GST_GL_HAVE_WINDOW_VIV_FB
 #include "viv-fb/gstglwindow_viv_fb_egl.h"
 #endif
+#if GST_GL_HAVE_WINDOW_GBM
+#include "gbm/gstglwindow_gbm_egl.h"
+#endif
 #if GST_GL_HAVE_WINDOW_DISPMANX
 #include "dispmanx/gstglwindow_dispmanx_egl.h"
 #endif
@@ -278,6 +281,10 @@ gst_gl_window_new (GstGLDisplay * display)
 #if GST_GL_HAVE_WINDOW_VIV_FB
   if (!window && (!user_choice || g_strstr_len (user_choice, 6, "viv-fb")))
     window = GST_GL_WINDOW (gst_gl_window_viv_fb_egl_new (display));
+#endif
+#if GST_GL_HAVE_WINDOW_GBM
+  if (!window && (!user_choice || g_strstr_len (user_choice, 3, "gbm")))
+    window = GST_GL_WINDOW (gst_gl_window_gbm_egl_new (display));
 #endif
 
   if (!window) {
@@ -906,6 +913,13 @@ gst_gl_window_set_render_rectangle (GstGLWindow * window, gint x, gint y,
 
   g_return_val_if_fail (GST_IS_GL_WINDOW (window), FALSE);
   window_class = GST_GL_WINDOW_GET_CLASS (window);
+
+  /* When x/y is smaller then reset the render rectangle */
+  if (x < 0 || y < 0) {
+    x = y = 0;
+    width = window->priv->surface_width;
+    height = window->priv->surface_height;
+  }
 
   if (x < 0 || y < 0 || width <= 0 || height <= 0)
     return FALSE;

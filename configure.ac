@@ -5,7 +5,7 @@ dnl please read gstreamer/docs/random/autotools before changing this file
 dnl initialize autoconf
 dnl releases only do -Wall, git and prerelease does -Werror too
 dnl use a three digit version number for releases, and four for git/prerelease
-AC_INIT([GStreamer Base Plug-ins],[1.13.0.1],[http://bugzilla.gnome.org/enter_bug.cgi?product=GStreamer],[gst-plugins-base])
+AC_INIT([GStreamer Base Plug-ins],[1.13.90],[http://bugzilla.gnome.org/enter_bug.cgi?product=GStreamer],[gst-plugins-base])
 
 AG_GST_INIT
 
@@ -56,10 +56,10 @@ dnl      1.2.5 => 205
 dnl      1.10.9 (who knows) => 1009
 dnl
 dnl sets GST_LT_LDFLAGS
-AS_LIBTOOL(GST, 1300, 0, 1300)
+AS_LIBTOOL(GST, 1390, 0, 1390)
 
 dnl *** required versions of GStreamer stuff ***
-GST_REQ=1.13.0.1
+GST_REQ=1.13.90
 
 dnl *** autotools stuff ****
 
@@ -295,6 +295,12 @@ GST_PREFIX="`$PKG_CONFIG --variable=prefix gstreamer-$GST_API_VERSION`"
 AC_SUBST(GLIB_PREFIX)
 AC_SUBST(GST_PREFIX)
 
+dnl check for gudev
+PKG_CHECK_MODULES(G_UDEV, gudev-1.0 , [
+        AC_DEFINE([HAVE_GUDEV], 1, [Define if gudev is installed])
+        HAVE_GUDEV="yes" ],
+        [HAVE_GUDEV="no"])
+
 AG_GST_GL_CHECKS
 
 dnl GTK is optional and only used in examples
@@ -479,6 +485,7 @@ dnl these are all the gst plug-ins, compilable without additional libs
 AG_GST_CHECK_PLUGIN(adder)
 AG_GST_CHECK_PLUGIN(app)
 AG_GST_CHECK_PLUGIN(audioconvert)
+AG_GST_CHECK_PLUGIN(audiomixer)
 AG_GST_CHECK_PLUGIN(audiorate)
 AG_GST_CHECK_PLUGIN(audiotestsrc)
 AG_GST_CHECK_PLUGIN(encoding)
@@ -673,9 +680,6 @@ AG_GST_CHECK_FEATURE(GL, [gl elements], gl, [
     AG_GST_GL_PLUGIN_CHECKS
   fi
 ])
-AM_CONDITIONAL(HAVE_GRAPHENE, test "x$HAVE_GRAPHENE" = "xyes")
-AM_CONDITIONAL(HAVE_PNG, test "x$HAVE_PNG" = "xyes")
-AM_CONDITIONAL(HAVE_JPEG, test "x$HAVE_JPEG" = "xyes")
 
 dnl *** ivorbis ***
 dnl AM_PATH_IVORBIS only takes two options
@@ -790,6 +794,10 @@ AM_CONDITIONAL(USE_VORBIS, false)
 
 fi dnl of EXT plugins
 
+AM_CONDITIONAL(HAVE_GRAPHENE, test "x$HAVE_GRAPHENE" = "xyes")
+AM_CONDITIONAL(HAVE_PNG, test "x$HAVE_PNG" = "xyes")
+AM_CONDITIONAL(HAVE_JPEG, test "x$HAVE_JPEG" = "xyes")
+
 dnl *** gio-unix-2.0 for tests/check/pipelines/tcp.c ***
 PKG_CHECK_MODULES(GIO_UNIX_2_0, gio-unix-2.0 >= 2.24,
     HAVE_GIO_UNIX_2_0="yes",
@@ -832,6 +840,10 @@ if test "x$HAVE_CXX" = "xyes"; then
 fi
 AC_SUBST(VISIBILITY_CXXFLAGS)
 
+dnl disable strict aliasing
+AS_COMPILER_FLAG([-fno-strict-aliasing], [EXTRA_CFLAGS="-fno-strict-aliasing"])
+AC_SUBST(EXTRA_CFLAGS)
+
 dnl every flag in GST_OPTION_CFLAGS and GST_OPTION_CXXFLAGS can be overridden
 dnl at make time with e.g. make ERROR_CFLAGS=""
 GST_OPTION_CFLAGS="\$(WARNING_CFLAGS) \$(ERROR_CFLAGS) \$(DEBUG_CFLAGS) \$(PROFILE_CFLAGS) \$(GCOV_CFLAGS) \$(OPT_CFLAGS) \$(DEPRECATED_CFLAGS)"
@@ -851,8 +863,8 @@ AC_SUBST(GST_PLUGINS_BASE_CFLAGS)
 dnl FIXME: do we want to rename to GST_ALL_* ?
 dnl add GST_OPTION_CFLAGS, but overridable
 GST_CFLAGS="$GST_CFLAGS $GST_STATIC_CFLAGS"
-GST_CXXFLAGS="$GLIB_CFLAGS $GST_CFLAGS \$(GLIB_EXTRA_CFLAGS) \$(GST_OPTION_CXXFLAGS) \$(VISIBILITY_CXXFLAGS)"
-GST_CFLAGS="$GLIB_CFLAGS $GST_CFLAGS \$(GLIB_EXTRA_CFLAGS) \$(GST_OPTION_CFLAGS) \$(VISIBILITY_CFLAGS)"
+GST_CXXFLAGS="$GLIB_CFLAGS $GST_CFLAGS $EXTRA_CFLAGS \$(GLIB_EXTRA_CFLAGS) \$(GST_OPTION_CXXFLAGS) \$(VISIBILITY_CXXFLAGS)"
+GST_CFLAGS="$GLIB_CFLAGS $GST_CFLAGS $EXTRA_CFLAGS \$(GLIB_EXTRA_CFLAGS) \$(GST_OPTION_CFLAGS) \$(VISIBILITY_CFLAGS)"
 AC_SUBST(GST_CFLAGS)
 AC_SUBST(GST_CXXFLAGS)
 dnl add GCOV libs because libtool strips -fprofile-arcs -ftest-coverage
@@ -889,6 +901,7 @@ gst/Makefile
 gst/adder/Makefile
 gst/app/Makefile
 gst/audioconvert/Makefile
+gst/audiomixer/Makefile
 gst/audiorate/Makefile
 gst/audioresample/Makefile
 gst/audiotestsrc/Makefile
@@ -935,6 +948,7 @@ gst-libs/gst/gl/wayland/Makefile
 gst-libs/gst/gl/win32/Makefile
 gst-libs/gst/gl/x11/Makefile
 gst-libs/gst/gl/viv-fb/Makefile
+gst-libs/gst/gl/gbm/Makefile
 gst-libs/gst/riff/Makefile
 gst-libs/gst/rtp/Makefile
 gst-libs/gst/rtsp/Makefile

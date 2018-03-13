@@ -30,6 +30,7 @@ gl_sources = [
 
 gl_headers = [
   'gl.h',
+  'gl-prelude.h',
   'gstgl_enums.h',
   'gstgl_fwd.h',
   'gstglapi.h',
@@ -223,6 +224,7 @@ if gl_winsys_s == 'auto'
   need_win_eagl = 'auto'
   need_win_dispmanx = 'auto'
   need_win_viv_fb = 'auto'
+  need_win_gbm = 'auto'
 else
   need_win_x11 = 'no'
   need_win_wayland = 'no'
@@ -231,6 +233,7 @@ else
   need_win_eagl = 'no'
   need_win_dispmanx = 'no'
   need_win_viv_fb = 'no'
+  need_win_gbm = 'no'
   gl_winsys = gl_winsys_s.split(',')
   foreach winsys : gl_winsys
     if winsys == 'x11'
@@ -247,6 +250,8 @@ else
       need_win_dispmanx = 'yes'
     elif winsys == 'viv-fb'
       need_win_viv_fb = 'yes'
+    elif winsys == 'gbm'
+      need_win_gbm = 'no'
     else
       error('Unsupported GL winsys provided ' + winsys)
     endif
@@ -370,9 +375,9 @@ if gles2_dep.found() and gl_dep.found()
   # https://github.com/mesonbuild/meson/issues/2364 is fixed
   if not cc.compiles(gl_include_block + '\n' + 'void f (void) {}',dependencies : [gles2_dep, gl_dep])
     message ('Cannot include both OpenGL and OpenGL ES headers')
-    if need_gles2 != 'yes'
+    if need_api_gles2 != 'yes'
       gles2_dep = unneeded_dep
-    elif need_opengl != 'yes'
+    elif need_api_opengl != 'yes'
       gl_dep = unneeded_dep
     else
       error('Both OpenGL and OpenGL ES were requested but cannot be included together')
@@ -570,8 +575,8 @@ if need_platform_wgl != 'no' and need_win_win32 != 'no'
   gdi_dep = cc.find_library('gdi32', required : false)
   # FIXME: Revert back to has_header once it gains prefix support
   wglext_h = cc.has_header_symbol('GL/wglext.h', 'WGL_WGLEXT_VERSION',
-                                  prefix : '#include <windows.h>
-                                            #include <GL/gl.h>')
+                                  prefix : '''#include <windows.h>
+                                              #include <GL/gl.h>''')
 
   if wglext_h and gdi_dep.found() and gl_dep.found()
     gl_platform_deps += gdi_dep
@@ -595,6 +600,39 @@ if host_machine.system() == 'darwin'
 #    'gstglcontext_cocoa.h',
 #    'gstglcaopengllayer.h',
 #  ]
+endif
+
+# GDM Checks
+gbm_gudev_dep = unneeded_dep
+gbm_libdrm_dep = unneeded_dep
+gbm_dep = unneeded_dep
+if need_win_gbm != 'no'
+  if need_win_gbm == 'yes'
+    if need_platform_egl == 'no'
+      error('Impossible situation requested: Cannot use GBM without EGL support')
+    endif
+  endif
+
+  gbm_gudev_dep = dependency('gudev-1.0', version : '>=147', required : false)
+  gbm_libdrm_dep = dependency('libdrm', version : '>= 2.4.55', required : false)
+  gbm_dep = dependency('gbm', required : false)
+  if egl_dep.found() and gbm_gudev_dep.found() and gbm_libdrm_dep.found() and gbm_dep.found()
+    gl_sources += [
+      'gbm/gstgldisplay_gbm.c',
+      'gbm/gstgl_gbm_utils.c',
+      'gbm/gstglwindow_gbm_egl.c',
+    ]
+    enabled_gl_winsys += 'gbm'
+    gl_winsys_deps += [gbm_gudev_dep, gbm_libdrm_dep, gbm_dep]
+    glconf.set('GST_GL_HAVE_WINDOW_GBM', 1)
+  else
+    if need_win_gbm == 'yes'
+      error ('Could not find requested GBM libraries')
+    endif
+    gbm_gudev_dep = unneeded_dep
+    gbm_libdrm_dep = unneeded_dep
+    gbm_dep = unneeded_dep
+  endif
 endif
 
 if need_platform_egl != 'no' and need_win_viv_fb != 'no'

@@ -2,7 +2,7 @@
 lib_LTLIBRARIES = libgstgl-@GST_API_VERSION@.la
 
 SUBDIRS = glprototypes
-DIST_SUBDIRS = glprototypes android x11 win32 cocoa wayland dispmanx egl eagl viv-fb
+DIST_SUBDIRS = glprototypes android x11 win32 cocoa wayland dispmanx egl eagl viv-fb gbm
 
 built_sys_header_configure = gstglconfig.h
 
@@ -67,6 +67,7 @@ libgstgl_@GST_API_VERSION@include_HEADERS = \
 	gstglquery.h \
 	gstgl_fwd.h \
 	gstgl_enums.h \
+	gl-prelude.h \
 	gl.h
 
 noinst_HEADERS = \
@@ -87,6 +88,9 @@ libgstgl_@GST_API_VERSION@_la_LIBADD = \
 	$(GST_LIBS) \
 	$(GL_LIBS)
 
+gstgl_gir_headers = $(libgstgl_@GST_API_VERSION@include_HEADERS)
+gstgl_gir_sources = $(libgstgl_@GST_API_VERSION@_la_SOURCES)
+
 if HAVE_WINDOW_WIN32
 SUBDIRS += win32
 libgstgl_@GST_API_VERSION@_la_LIBADD += win32/libgstgl-win32.la
@@ -100,11 +104,15 @@ endif
 if HAVE_WINDOW_X11
 SUBDIRS += x11
 libgstgl_@GST_API_VERSION@_la_LIBADD += x11/libgstgl-x11.la
+gstgl_gir_headers += x11/gstgldisplay_x11.h
+gstgl_gir_sources += x11/gstgldisplay_x11.c
 endif
 
 if HAVE_WINDOW_WAYLAND
 SUBDIRS += wayland
 libgstgl_@GST_API_VERSION@_la_LIBADD += wayland/libgstgl-wayland.la
+gstgl_gir_headers += wayland/gstgldisplay_wayland.h
+gstgl_gir_sources += wayland/gstgldisplay_wayland.c
 endif
 
 if HAVE_WINDOW_DISPMANX
@@ -127,9 +135,16 @@ SUBDIRS += viv-fb
 libgstgl_@GST_API_VERSION@_la_LIBADD += viv-fb/libgstgl-viv-fb.la
 endif
 
+if HAVE_WINDOW_GBM
+SUBDIRS += gbm
+libgstgl_@GST_API_VERSION@_la_LIBADD += gbm/libgstgl-gbm.la
+endif
+
 if USE_EGL
 SUBDIRS += egl
 libgstgl_@GST_API_VERSION@_la_LIBADD += egl/libgstgl-egl.la
+gstgl_gir_headers += egl/gstgldisplay_egl.h
+gstgl_gir_sources += egl/gstgldisplay_egl.c
 endif
 
 configexecincludedir = $(libdir)/gstreamer-@GST_API_VERSION@/include/gst/gl
@@ -153,8 +168,8 @@ DISTCLEANFILES = $(built_sys_header_configure)
 if HAVE_INTROSPECTION
 BUILT_GIRSOURCES = GstGL-@GST_API_VERSION@.gir
 
-gir_headers=$(patsubst %,$(srcdir)/%, $(libgstgl_@GST_API_VERSION@include_HEADERS))
-gir_sources=$(patsubst %,$(srcdir)/%, $(libgstgl_@GST_API_VERSION@_la_SOURCES))
+gir_headers=$(patsubst %,$(srcdir)/%, $(gstgl_gir_headers))
+gir_sources=$(patsubst %,$(srcdir)/%, $(gstgl_gir_sources))
 
 GstGL-@GST_API_VERSION@.gir: $(INTROSPECTION_SCANNER) libgstgl-@GST_API_VERSION@.la
 	$(AM_V_GEN)PKG_CONFIG_PATH="$(GST_PKG_CONFIG_PATH)" GI_SCANNER_DISABLE_CACHE=yes\

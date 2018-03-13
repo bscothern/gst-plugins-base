@@ -48,6 +48,26 @@ GST_TYPE_FD_ALLOCATOR
 <SUBSECTION Private>
 </SECTION>
 
+<SECTION>
+<FILE>gstphysmemoryallocator</FILE>
+<TITLE>GstPhysMemoryAllocator</TITLE>
+<INCLUDE>gst/allocators/allocators.h</INCLUDE>
+GstPhysMemoryAllocator
+GstPhysMemoryAllocatorInterface
+gst_is_phys_memory
+gst_phys_memory_get_phys_addr
+<SUBSECTION Standard>
+GST_TYPE_PHYS_MEMORY_ALLOCATOR
+GST_IS_PHYS_MEMORY_ALLOCATOR
+GST_IS_PHYS_MEMORY_ALLOCATOR_INTERFACE
+GST_PHYS_MEMORY_ALLOCATOR_GET_INTERFACE
+GST_PHYS_MEMORY_ALLOCATOR
+GST_PHYS_MEMORY_ALLOCATOR_INTERFACE
+GST_PHYS_MEMORY_ALLOCATOR_CAST
+gst_phys_memory_allocator_get_type
+<SUBSECTION Private>
+</SECTION>
+
 # app
 <SECTION>
 <FILE>gstappsrc</FILE>
@@ -555,6 +575,47 @@ GST_TYPE_AUDIO_BASE_SINK_SLAVE_METHOD
 </SECTION>
 
 <SECTION>
+<FILE>gstaudioaggregator</FILE>
+<INCLUDE>gst/audio/audio.h</INCLUDE>
+GstAudioAggregator
+GstAudioAggregatorClass
+
+gst_audio_aggregator_set_sink_caps
+
+GstAudioAggregatorPad
+GstAudioAggregatorPadClass
+
+GstAudioAggregatorConvertPad
+GstAudioAggregatorConvertPadClass
+<SUBSECTION Standard>
+GstAudioAggregatorPrivate
+GST_AUDIO_AGGREGATOR
+GST_IS_AUDIO_AGGREGATOR
+GST_TYPE_AUDIO_AGGREGATOR
+gst_audio_aggregator_get_type
+GST_AUDIO_AGGREGATOR_CLASS
+GST_IS_AUDIO_AGGREGATOR_CLASS
+GST_AUDIO_AGGREGATOR_GET_CLASS
+gst_audio_aggregator_get_type
+
+GST_IS_AUDIO_AGGREGATOR_PAD
+GST_IS_AUDIO_AGGREGATOR_PADCLASS
+GST_TYPE_AUDIO_AGGREGATOR_PAD
+GST_AUDIO_AGGREGATOR_PAD
+GST_AUDIO_AGGREGATOR_PAD_CLASS
+GST_AUDIO_AGGREGATOR_PAD_GET_CLASS
+gst_audio_aggregator_pad_get_type
+
+GST_IS_AUDIO_AGGREGATOR_CONVERT_PAD
+GST_IS_AUDIO_AGGREGATOR_CONVERT_PADCLASS
+GST_TYPE_AUDIO_AGGREGATOR_CONVERT_PAD
+GST_AUDIO_AGGREGATOR_CONVERT_PAD
+GST_AUDIO_AGGREGATOR_CONVERT_PAD_CLASS
+GST_AUDIO_AGGREGATOR_CONVERT_PAD_GET_CLASS
+gst_audio_aggregator_convert_pad_get_type
+</SECTION>
+
+<SECTION>
 <FILE>gstaudiobasesrc</FILE>
 <INCLUDE>gst/audio/gstaudiobasesrc.h</INCLUDE>
 GstAudioBaseSrc
@@ -617,6 +678,7 @@ GstAudioConverterFlags
 gst_audio_converter_new
 gst_audio_converter_free
 gst_audio_converter_samples
+gst_audio_converter_convert
 gst_audio_converter_get_in_frames
 gst_audio_converter_get_max_latency
 gst_audio_converter_get_out_frames
@@ -629,6 +691,7 @@ gst_audio_converter_reset
 gst_audio_converter_supports_inplace
 <SUBSECTION Standard>
 gst_audio_converter_flags_get_type
+gst_audio_converter_get_type
 </SECTION>
 
 <SECTION>
@@ -1009,6 +1072,8 @@ gst_video_overlay_expose
 gst_video_overlay_handle_events
 gst_video_overlay_set_render_rectangle
 gst_is_video_overlay_prepare_window_handle_message
+gst_video_overlay_install_properties
+gst_video_overlay_set_property
 <SUBSECTION Standard>
 GST_TYPE_VIDEO_OVERLAY
 GST_VIDEO_OVERLAY
@@ -2875,6 +2940,8 @@ gst_buffer_add_video_region_of_interest_meta
 gst_buffer_add_video_region_of_interest_meta_id
 gst_buffer_get_video_region_of_interest_meta
 gst_buffer_get_video_region_of_interest_meta_id
+gst_video_region_of_interest_meta_add_param
+gst_video_region_of_interest_meta_get_param
 GST_BUFFER_POOL_OPTION_VIDEO_GL_TEXTURE_UPLOAD_META
 GstVideoGLTextureOrientation
 GstVideoGLTextureType
@@ -3108,6 +3175,7 @@ gst_video_encoder_get_output_state
 gst_video_encoder_set_min_pts
 gst_video_encoder_proxy_getcaps
 gst_video_encoder_merge_tags
+gst_video_encoder_get_max_encode_time
 <SUBSECTION Standard>
 GST_IS_VIDEO_ENCODER
 GST_IS_VIDEO_ENCODER_CLASS

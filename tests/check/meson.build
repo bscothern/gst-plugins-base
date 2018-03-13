@@ -23,7 +23,7 @@ base_tests = [
   [ 'libs/rtspconnection.c' ],
   [ 'libs/sdp.c' ],
   [ 'libs/tag.c' ],
-  #  [ 'libs/video' ], # FIXME: times out, perhaps split or spawn conversions into benchmark tool and/or multiple threads
+  [ 'libs/video.c' ],
   [ 'libs/videoencoder.c' ],
   [ 'libs/videotimecode.c' ],
   [ 'libs/xmpwriter.c' ],
@@ -31,6 +31,8 @@ base_tests = [
   [ 'elements/appsink.c' ],
   [ 'elements/appsrc.c' ],
   [ 'elements/audioconvert.c' ],
+  [ 'elements/audiointerleave.c' ],
+  [ 'elements/audiomixer.c', false, [ gst_controller_dep ] ],
   [ 'elements/audiorate.c' ],
   [ 'elements/audiotestsrc.c' ],
   [ 'elements/audioresample.c' ],
@@ -81,6 +83,7 @@ if build_gstgl
     [ 'libs/gstglslstage.c', not build_gstgl, [gstgl_dep]],
     [ 'libs/gstglupload.c', not build_gstgl, [gstgl_dep]],
     [ 'elements/glimagesink.c', not build_gstgl, [gstgl_dep]],
+    [ 'elements/glbin.c', not build_gstgl ],
     [ 'pipelines/gl-launch-lines.c', not build_gstgl ],
   ]
 endif
