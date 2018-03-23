@@ -161,6 +161,7 @@ gst_gl_context_eagl_update_layer (GstGLContext * context)
   GstGLContextEaglPrivate *priv = context_eagl->priv;
   UIView *window_handle = nil;
   GstGLWindow *window = gst_gl_context_get_window (context);
+
   if (window)
     window_handle = (__bridge UIView *)((void *)gst_gl_window_get_window_handle (window));
 
@@ -175,30 +176,38 @@ gst_gl_context_eagl_update_layer (GstGLContext * context)
   if (priv->eagl_layer)
     gst_gl_context_eagl_release_layer (context);
 
-  eagl_layer = (CAEAGLLayer *)[window_handle layer];
-  [EAGLContext setCurrentContext:GS_GL_CONTEXT_EAGL_CONTEXT(context_eagl)];
+  dispatch_block_t main_thread_block = ^{
+    eagl_layer = (CAEAGLLayer *)[window_handle layer];
+    [EAGLContext setCurrentContext:GS_GL_CONTEXT_EAGL_CONTEXT(context_eagl)];
 
-  /* Allocate framebuffer */
-  glGenFramebuffers (1, &framebuffer);
-  glBindFramebuffer (GL_FRAMEBUFFER, framebuffer);
-  /* Allocate color render buffer */
-  glGenRenderbuffers (1, &color_renderbuffer);
-  glBindRenderbuffer (GL_RENDERBUFFER, color_renderbuffer);
-  [GS_GL_CONTEXT_EAGL_CONTEXT(context_eagl) renderbufferStorage: GL_RENDERBUFFER fromDrawable:eagl_layer];
-  glFramebufferRenderbuffer (GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-      GL_RENDERBUFFER, color_renderbuffer);
-  /* Get renderbuffer width/height */
-  glGetRenderbufferParameteriv (GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH,
-      &width);
-  glGetRenderbufferParameteriv (GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT,
-      &height);
-  /* allocate depth render buffer */
-  glGenRenderbuffers (1, &depth_renderbuffer);
-  glBindRenderbuffer (GL_RENDERBUFFER, depth_renderbuffer);
-  glRenderbufferStorage (GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width,
-      height);
-  glFramebufferRenderbuffer (GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-      GL_RENDERBUFFER, depth_renderbuffer);
+    /*  Allocate framebuffer */
+    glGenFramebuffers (1, &framebuffer);
+    glBindFramebuffer (GL_FRAMEBUFFER, framebuffer);
+    /* Allocate color render buffer */
+    glGenRenderbuffers (1, &color_renderbuffer);
+    glBindRenderbuffer (GL_RENDERBUFFER, color_renderbuffer);
+    [GS_GL_CONTEXT_EAGL_CONTEXT(context_eagl) renderbufferStorage: GL_RENDERBUFFER fromDrawable:eagl_layer];
+    glFramebufferRenderbuffer (GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+        GL_RENDERBUFFER, color_renderbuffer);
+    /* Get renderbuffer width/height */
+    glGetRenderbufferParameteriv (GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH,
+        &width);
+    glGetRenderbufferParameteriv (GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT,
+        &height);
+    /* allocate depth render buffer */
+    glGenRenderbuffers (1, &depth_renderbuffer);
+    glBindRenderbuffer (GL_RENDERBUFFER, depth_renderbuffer);
+    glRenderbufferStorage (GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width,
+        height);
+    glFramebufferRenderbuffer (GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+        GL_RENDERBUFFER, depth_renderbuffer);
+  };
+
+  if [[NSThread currentThread] isMainThread] {
+    main_thread_block ();
+  } else {
+    dispatch_sync (dispatch_get_main_queue (), main_thread_block);
+  }
 
   /* check creation status */
   status = glCheckFramebufferStatus (GL_FRAMEBUFFER);
