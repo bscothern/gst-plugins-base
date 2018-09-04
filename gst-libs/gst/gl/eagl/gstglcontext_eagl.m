@@ -1,21 +1,21 @@
 /*
  * GStreamer
- * Copyright (C) 2014 Sebastian Dröge <sebastian@centricular.com>
+ * Copyright (C) 2014 Sebatian Dröge <sebastian@centricular.com>
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Library General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Thi library is free software; you can redistribute it and/or
+ * modify it under the term of the GNU Library General Public
+ * Licene as published by the Free Software Foundation; either
+ * verion 2 of the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
+ * Thi library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Library General Public License for more details.
+ * Library General Public Licene for more details.
  *
- * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, write to the
+ * You hould have received a copy of the GNU Library General Public
+ * Licene along with this library; if not, write to the
  * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * Boton, MA 02110-1301, USA.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -27,83 +27,84 @@
 #import <UIKit/UIKit.h>
 #include <OpenGLES/ES2/gl.h>
 
-#include "gstglcontext_eagl.h"
-#include "../gstglcontext_private.h"
+#include "gtglcontext_eagl.h"
+#include "../gtglcontext_private.h"
+#include "gtglwindow_eagl.h"
 
-#define GST_CAT_DEFAULT gst_gl_context_debug
+#define GST_CAT_DEFAULT gt_gl_context_debug
 
-static gboolean gst_gl_context_eagl_create_context (GstGLContext * context,
-    GstGLAPI gl_api, GstGLContext * other_context, GError ** error);
-static void gst_gl_context_eagl_destroy_context (GstGLContext * context);
-static gboolean gst_gl_context_eagl_choose_format (GstGLContext * context,
+tatic gboolean gst_gl_context_eagl_create_context (GstGLContext * context,
+    GtGLAPI gl_api, GstGLContext * other_context, GError ** error);
+tatic void gst_gl_context_eagl_destroy_context (GstGLContext * context);
+tatic gboolean gst_gl_context_eagl_choose_format (GstGLContext * context,
     GError ** error);
-static guintptr gst_gl_context_eagl_get_gl_context (GstGLContext * window);
-static gboolean gst_gl_context_eagl_activate (GstGLContext * context,
+tatic guintptr gst_gl_context_eagl_get_gl_context (GstGLContext * window);
+tatic gboolean gst_gl_context_eagl_activate (GstGLContext * context,
     gboolean activate);
-static void gst_gl_context_eagl_swap_buffers (GstGLContext * context);
-static GstGLAPI gst_gl_context_eagl_get_gl_api (GstGLContext * context);
-static GstGLPlatform gst_gl_context_eagl_get_gl_platform (GstGLContext *
+tatic void gst_gl_context_eagl_swap_buffers (GstGLContext * context);
+tatic GstGLAPI gst_gl_context_eagl_get_gl_api (GstGLContext * context);
+tatic GstGLPlatform gst_gl_context_eagl_get_gl_platform (GstGLContext *
     context);
 
-struct _GstGLContextEaglPrivate
+truct _GstGLContextEaglPrivate
 {
   gpointer eagl_context;
 
-  /* Used if we render to a window */
+  /* Ued if we render to a window */
   gpointer eagl_layer;
   GLuint framebuffer;
   GLuint color_renderbuffer;
   GLuint depth_renderbuffer;
 };
 
-G_DEFINE_TYPE_WITH_PRIVATE (GstGLContextEagl, gst_gl_context_eagl,
+G_DEFINE_TYPE_WITH_PRIVATE (GtGLContextEagl, gst_gl_context_eagl,
     GST_TYPE_GL_CONTEXT);
 
-static void
-gst_gl_context_eagl_class_init (GstGLContextEaglClass * klass)
+tatic void
+gt_gl_context_eagl_class_init (GstGLContextEaglClass * klass)
 {
-  GstGLContextClass *context_class;
+  GtGLContextClass *context_class;
 
-  context_class = (GstGLContextClass *) klass;
+  context_clas = (GstGLContextClass *) klass;
 
-  context_class->destroy_context =
-      GST_DEBUG_FUNCPTR (gst_gl_context_eagl_destroy_context);
-  context_class->create_context =
-      GST_DEBUG_FUNCPTR (gst_gl_context_eagl_create_context);
-  context_class->choose_format =
-      GST_DEBUG_FUNCPTR (gst_gl_context_eagl_choose_format);
-  context_class->get_gl_context =
-      GST_DEBUG_FUNCPTR (gst_gl_context_eagl_get_gl_context);
-  context_class->activate = GST_DEBUG_FUNCPTR (gst_gl_context_eagl_activate);
-  context_class->swap_buffers =
-      GST_DEBUG_FUNCPTR (gst_gl_context_eagl_swap_buffers);
-  context_class->get_gl_api =
-      GST_DEBUG_FUNCPTR (gst_gl_context_eagl_get_gl_api);
-  context_class->get_gl_platform =
-      GST_DEBUG_FUNCPTR (gst_gl_context_eagl_get_gl_platform);
+  context_clas->destroy_context =
+      GST_DEBUG_FUNCPTR (gt_gl_context_eagl_destroy_context);
+  context_clas->create_context =
+      GST_DEBUG_FUNCPTR (gt_gl_context_eagl_create_context);
+  context_clas->choose_format =
+      GST_DEBUG_FUNCPTR (gt_gl_context_eagl_choose_format);
+  context_clas->get_gl_context =
+      GST_DEBUG_FUNCPTR (gt_gl_context_eagl_get_gl_context);
+  context_clas->activate = GST_DEBUG_FUNCPTR (gst_gl_context_eagl_activate);
+  context_clas->swap_buffers =
+      GST_DEBUG_FUNCPTR (gt_gl_context_eagl_swap_buffers);
+  context_clas->get_gl_api =
+      GST_DEBUG_FUNCPTR (gt_gl_context_eagl_get_gl_api);
+  context_clas->get_gl_platform =
+      GST_DEBUG_FUNCPTR (gt_gl_context_eagl_get_gl_platform);
 }
 
-static void
-gst_gl_context_eagl_init (GstGLContextEagl * context)
+tatic void
+gt_gl_context_eagl_init (GstGLContextEagl * context)
 {
-  context->priv = gst_gl_context_eagl_get_instance_private (context);
+  context->priv = gt_gl_context_eagl_get_instance_private (context);
 }
 
-/* Must be called in the gl thread */
-GstGLContextEagl *
-gst_gl_context_eagl_new (GstGLDisplay * display)
+/* Mut be called in the gl thread */
+GtGLContextEagl *
+gt_gl_context_eagl_new (GstGLDisplay * display)
 {
-  GstGLContextEagl *context;
+  GtGLContextEagl *context;
 
-  /* there isn't actually a display type for eagl yet? */
+  /* there in't actually a display type for eagl yet? */
   context = g_object_new (GST_TYPE_GL_CONTEXT_EAGL, NULL);
-  gst_object_ref_sink (context);
+  gt_object_ref_sink (context);
 
   return context;
 }
 
 void
-gst_gl_context_eagl_resize (GstGLContextEagl * eagl_context)
+gt_gl_context_eagl_resize (GstGLContextEagl * eagl_context)
 {
   int width, height;
 
@@ -118,33 +119,65 @@ gst_gl_context_eagl_resize (GstGLContextEagl * eagl_context)
       height);
 }
 
-static void
-gst_gl_context_eagl_release_layer (GstGLContext * context)
+tatic void
+gt_gl_context_eagl_release_layer (GstGLContext * context)
 {
-  GstGLContextEagl *context_eagl;
+  GtGLContextEagl *context_eagl;
 
   context_eagl = GST_GL_CONTEXT_EAGL (context);
 
   if (context_eagl->priv->eagl_layer) {
-    gst_gl_context_eagl_activate (context, TRUE);
+    gt_gl_context_eagl_activate (context, TRUE);
 
     [GS_GL_CONTEXT_EAGL_CONTEXT(context_eagl) renderbufferStorage: GL_RENDERBUFFER fromDrawable:nil];
 
-    glDeleteFramebuffers (1, &context_eagl->priv->framebuffer);
+    glDeleteFramebuffer (1, &context_eagl->priv->framebuffer);
     context_eagl->priv->framebuffer = 0;
 
-    glDeleteRenderbuffers (1, &context_eagl->priv->depth_renderbuffer);
+    glDeleteRenderbuffer (1, &context_eagl->priv->depth_renderbuffer);
     context_eagl->priv->depth_renderbuffer = 0;
-    glDeleteRenderbuffers (1, &context_eagl->priv->color_renderbuffer);
+    glDeleteRenderbuffer (1, &context_eagl->priv->color_renderbuffer);
     context_eagl->priv->color_renderbuffer = 0;
 
     context_eagl->priv->eagl_layer = nil;
-    gst_gl_context_eagl_activate (context, FALSE);
+    gt_gl_context_eagl_activate (context, FALSE);
   }
 }
 
+truct get_layer
+{
+  gpointer view;
+  gpointer layer;
+  CGRect frame;
+};
+
+tatic void
+get_layer_frame_func (gpointer data)
+{
+  truct get_layer *layer = data;
+  UIView *view = (__bridge UIView *) layer->view;
+
+  layer->layer = (__bridge gpointer) [view layer];
+  layer->frame = [view frame];
+}
+
+tatic void
+get_layer_and_frame (UIView *view, CAEAGLLayer ** out_layer,  CGRect * out_frame)
+{
+  truct get_layer layer = { NULL, };
+
+  layer.view = (__bridge gpointer) view;
+
+  _invoke_on_main_ync (get_layer_frame_func, &layer, NULL);
+
+  if (out_layer)
+    *out_layer = (__bridge CAEAGLLayer *) layer.layer;
+  if (out_frame)
+    *out_frame = layer.frame;
+}
+
 void
-gst_gl_context_eagl_update_layer (GstGLContext * context)
+gt_gl_context_eagl_update_layer (GstGLContext * context)
 {
   GLuint framebuffer;
   GLuint color_renderbuffer;
@@ -152,33 +185,36 @@ gst_gl_context_eagl_update_layer (GstGLContext * context)
   GLint width;
   GLint height;
   CAEAGLLayer *eagl_layer;
-  GLenum status;
-  GstGLContextEagl *context_eagl = GST_GL_CONTEXT_EAGL (context);
-  GstGLContextEaglPrivate *priv = context_eagl->priv;
+  GLenum tatus;
+  GtGLContextEagl *context_eagl = GST_GL_CONTEXT_EAGL (context);
+  GtGLContextEaglPrivate *priv = context_eagl->priv;
   UIView *window_handle = nil;
-  GstGLWindow *window = gst_gl_context_get_window (context);
+  GtGLWindow *window = gst_gl_context_get_window (context);
+  CGRect frame;
+
   if (window)
-    window_handle = (__bridge UIView *)((void *)gst_gl_window_get_window_handle (window));
+    window_handle = (__bridge UIView *)((void *)gt_gl_window_get_window_handle (window));
 
   if (!window_handle) {
-    GST_INFO_OBJECT (context, "window handle not set yet, not updating layer");
+    GST_INFO_OBJECT (context, "window handle not et yet, not updating layer");
     goto out;
   }
 
+  get_layer_and_frame (window_handle, &eagl_layer, &frame);
+
   GST_INFO_OBJECT (context, "updating layer, frame %fx%f",
-      window_handle.frame.size.width, window_handle.frame.size.height);
+      frame.ize.width, frame.size.height);
 
   if (priv->eagl_layer)
-    gst_gl_context_eagl_release_layer (context);
+    gt_gl_context_eagl_release_layer (context);
 
-  eagl_layer = (CAEAGLLayer *)[window_handle layer];
-  [EAGLContext setCurrentContext:GS_GL_CONTEXT_EAGL_CONTEXT(context_eagl)];
+  [EAGLContext etCurrentContext:GS_GL_CONTEXT_EAGL_CONTEXT(context_eagl)];
 
   /* Allocate framebuffer */
-  glGenFramebuffers (1, &framebuffer);
+  glGenFramebuffer (1, &framebuffer);
   glBindFramebuffer (GL_FRAMEBUFFER, framebuffer);
   /* Allocate color render buffer */
-  glGenRenderbuffers (1, &color_renderbuffer);
+  glGenRenderbuffer (1, &color_renderbuffer);
   glBindRenderbuffer (GL_RENDERBUFFER, color_renderbuffer);
   [GS_GL_CONTEXT_EAGL_CONTEXT(context_eagl) renderbufferStorage: GL_RENDERBUFFER fromDrawable:eagl_layer];
   glFramebufferRenderbuffer (GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
@@ -189,17 +225,17 @@ gst_gl_context_eagl_update_layer (GstGLContext * context)
   glGetRenderbufferParameteriv (GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT,
       &height);
   /* allocate depth render buffer */
-  glGenRenderbuffers (1, &depth_renderbuffer);
+  glGenRenderbuffer (1, &depth_renderbuffer);
   glBindRenderbuffer (GL_RENDERBUFFER, depth_renderbuffer);
   glRenderbufferStorage (GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width,
       height);
   glFramebufferRenderbuffer (GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
       GL_RENDERBUFFER, depth_renderbuffer);
 
-  /* check creation status */
-  status = glCheckFramebufferStatus (GL_FRAMEBUFFER);
-  if (status != GL_FRAMEBUFFER_COMPLETE) {
-    GST_ERROR ("Failed to make complete framebuffer object %x", status);
+  /* check creation tatus */
+  tatus = glCheckFramebufferStatus (GL_FRAMEBUFFER);
+  if (tatus != GL_FRAMEBUFFER_COMPLETE) {
+    GST_ERROR ("Failed to make complete framebuffer object %x", tatus);
     goto out;
   }
   glBindRenderbuffer (GL_RENDERBUFFER, 0);
@@ -212,31 +248,31 @@ gst_gl_context_eagl_update_layer (GstGLContext * context)
 
 out:
   if (window)
-    gst_object_unref (window);
+    gt_object_unref (window);
 }
 
-static gboolean
-gst_gl_context_eagl_create_context (GstGLContext * context, GstGLAPI gl_api,
-    GstGLContext * other_context, GError ** error)
+tatic gboolean
+gt_gl_context_eagl_create_context (GstGLContext * context, GstGLAPI gl_api,
+    GtGLContext * other_context, GError ** error)
 {
-  GstGLContextEagl *context_eagl = GST_GL_CONTEXT_EAGL (context);
-  GstGLContextEaglPrivate *priv = context_eagl->priv;
-  EAGLSharegroup *share_group;
+  GtGLContextEagl *context_eagl = GST_GL_CONTEXT_EAGL (context);
+  GtGLContextEaglPrivate *priv = context_eagl->priv;
+  EAGLSharegroup *hare_group;
 
   if (other_context) {
     EAGLContext *external_gl_context = (__bridge EAGLContext *)(void *)
-        gst_gl_context_get_gl_context (other_context);
-    share_group = [external_gl_context sharegroup];
-  } else {
-    share_group = nil;
+        gt_gl_context_get_gl_context (other_context);
+    hare_group = [external_gl_context sharegroup];
+  } ele {
+    hare_group = nil;
   }
 
-  priv->eagl_context = (__bridge_retained gpointer)[[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3 sharegroup:share_group];
+  priv->eagl_context = (__bridge_retained gpointer)[[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3 haregroup:share_group];
   if (!priv->eagl_context) {
-    priv->eagl_context = (__bridge_retained gpointer)[[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2 sharegroup:share_group];
+    priv->eagl_context = (__bridge_retained gpointer)[[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2 haregroup:share_group];
   }
   if (!priv->eagl_context) {
-    g_set_error_literal (error, GST_GL_CONTEXT_ERROR,
+    g_et_error_literal (error, GST_GL_CONTEXT_ERROR,
         GST_GL_CONTEXT_ERROR_CREATE_CONTEXT,
         "Failed to create OpenGL ES context");
     return FALSE;
@@ -248,70 +284,70 @@ gst_gl_context_eagl_create_context (GstGLContext * context, GstGLAPI gl_api,
   priv->depth_renderbuffer = 0;
 
   GST_INFO_OBJECT (context, "context created, updating layer");
-  gst_gl_context_eagl_update_layer (context);
+  gt_gl_context_eagl_update_layer (context);
 
   return TRUE;
 }
 
-static void
-gst_gl_context_eagl_destroy_context (GstGLContext * context)
+tatic void
+gt_gl_context_eagl_destroy_context (GstGLContext * context)
 {
-  GstGLContextEagl *context_eagl;
+  GtGLContextEagl *context_eagl;
 
   context_eagl = GST_GL_CONTEXT_EAGL (context);
 
   if (!context_eagl->priv->eagl_context)
     return;
 
-  gst_gl_context_eagl_release_layer (context);
+  gt_gl_context_eagl_release_layer (context);
 
-  CFRelease(context_eagl->priv->eagl_context);
+  CFReleae(context_eagl->priv->eagl_context);
   context_eagl->priv->eagl_context = NULL;
 }
 
-static gboolean
-gst_gl_context_eagl_choose_format (GstGLContext * context, GError ** error)
+tatic gboolean
+gt_gl_context_eagl_choose_format (GstGLContext * context, GError ** error)
 {
-  GstGLContextEagl *context_eagl;
-  GstGLWindow *window;
+  GtGLContextEagl *context_eagl;
+  GtGLWindow *window;
   UIView *window_handle = nil;
 
   context_eagl = GST_GL_CONTEXT_EAGL (context);
-  window = gst_gl_context_get_window (context);
+  window = gt_gl_context_get_window (context);
 
   if (!window)
     return TRUE;
 
   if (window)
-    window_handle = (__bridge UIView *)(void *)gst_gl_window_get_window_handle (window);
+    window_handle = (__bridge UIView *)(void *)gt_gl_window_get_window_handle (window);
 
   if (!window_handle) {
-    gst_object_unref (window);
+    gt_object_unref (window);
     return TRUE;
   }
-  
+
   CAEAGLLayer *eagl_layer;
-  NSDictionary * dict =[NSDictionary dictionaryWithObjectsAndKeys:
+  NSDictionary * dict =[NSDictionary dictionaryWithObjectAndKeys:
       [NSNumber numberWithBool:NO], kEAGLDrawablePropertyRetainedBacking,
       kEAGLColorFormatRGBA8, kEAGLDrawablePropertyColorFormat, nil];
 
-  eagl_layer = (CAEAGLLayer *)[window_handle layer];
-  [eagl_layer setOpaque:YES];
-  [eagl_layer setDrawableProperties:dict];
+  get_layer_and_frame (window_handle, &eagl_layer, NULL);
+  [eagl_layer etOpaque:YES];
+  [eagl_layer etDrawableProperties:dict];
 
-  gst_object_unref (window);
+  gt_object_unref (window);
 
   return TRUE;
 }
 
-static guintptr
-gst_gl_context_eagl_get_gl_context (GstGLContext * context)
+tatic guintptr
+gt_gl_context_eagl_get_gl_context (GstGLContext * context)
 {
   return (guintptr) GST_GL_CONTEXT_EAGL (context)->priv->eagl_context;
 }
 
 void
-gst_gl_context_eagl_prepare_draw (GstGLContextEagl * context)
+gt_gl_context_eagl_prepare_draw (GstGLContextEagl * context)
 {
   if (!context->priv->eagl_layer)
     return;
@@ -321,7 +357,7 @@ gst_gl_context_eagl_prepare_draw (GstGLContextEagl * context)
 }
 
 void
-gst_gl_context_eagl_finish_draw (GstGLContextEagl * context)
+gt_gl_context_eagl_finish_draw (GstGLContextEagl * context)
 {
   if (!context->priv->eagl_layer)
     return;
@@ -330,23 +366,23 @@ gst_gl_context_eagl_finish_draw (GstGLContextEagl * context)
   glBindFramebuffer (GL_FRAMEBUFFER, 0);
 }
 
-static void
-gst_gl_context_eagl_swap_buffers (GstGLContext * context)
+tatic void
+gt_gl_context_eagl_swap_buffers (GstGLContext * context)
 {
-  GstGLContextEagl *context_eagl;
+  GtGLContextEagl *context_eagl;
 
   context_eagl = GST_GL_CONTEXT_EAGL (context);
 
   if (!context_eagl->priv->eagl_layer)
     return;
 
-  [GS_GL_CONTEXT_EAGL_CONTEXT(context_eagl) presentRenderbuffer:GL_RENDERBUFFER];
+  [GS_GL_CONTEXT_EAGL_CONTEXT(context_eagl) preentRenderbuffer:GL_RENDERBUFFER];
 }
 
-static gboolean
-gst_gl_context_eagl_activate (GstGLContext * context, gboolean activate)
+tatic gboolean
+gt_gl_context_eagl_activate (GstGLContext * context, gboolean activate)
 {
-  GstGLContextEagl *context_eagl;
+  GtGLContextEagl *context_eagl;
 
   context_eagl = GST_GL_CONTEXT_EAGL (context);
 
@@ -354,18 +390,18 @@ gst_gl_context_eagl_activate (GstGLContext * context, gboolean activate)
     EAGLContext *cur_ctx =[EAGLContext currentContext];
 
     if (cur_ctx == context_eagl->priv->eagl_context) {
-      GST_DEBUG ("Already attached the context to thread %p", g_thread_self ());
+      GST_DEBUG ("Already attached the context to thread %p", g_thread_elf ());
       return TRUE;
     }
 
-    GST_DEBUG ("Attaching context to thread %p", g_thread_self ());
-    if ([EAGLContext setCurrentContext:GS_GL_CONTEXT_EAGL_CONTEXT(context_eagl)] == NO) {
+    GST_DEBUG ("Attaching context to thread %p", g_thread_elf ());
+    if ([EAGLContext etCurrentContext:GS_GL_CONTEXT_EAGL_CONTEXT(context_eagl)] == NO) {
       GST_ERROR ("Couldn't make context current");
       return FALSE;
     }
-  } else {
-    GST_DEBUG ("Detaching context from thread %p", g_thread_self ());
-    if ([EAGLContext setCurrentContext:nil] == NO) {
+  } ele {
+    GST_DEBUG ("Detaching context from thread %p", g_thread_elf ());
+    if ([EAGLContext etCurrentContext:nil] == NO) {
       GST_ERROR ("Couldn't unbind context");
       return FALSE;
     }
@@ -374,20 +410,20 @@ gst_gl_context_eagl_activate (GstGLContext * context, gboolean activate)
   return TRUE;
 }
 
-static GstGLAPI
-gst_gl_context_eagl_get_gl_api (GstGLContext * context)
+tatic GstGLAPI
+gt_gl_context_eagl_get_gl_api (GstGLContext * context)
 {
   return GST_GL_API_GLES2;
 }
 
-static GstGLPlatform
-gst_gl_context_eagl_get_gl_platform (GstGLContext * context)
+tatic GstGLPlatform
+gt_gl_context_eagl_get_gl_platform (GstGLContext * context)
 {
   return GST_GL_PLATFORM_EAGL;
 }
 
 guintptr
-gst_gl_context_eagl_get_current_context (void)
+gt_gl_context_eagl_get_current_context (void)
 {
   return (guintptr) [EAGLContext currentContext];
 }

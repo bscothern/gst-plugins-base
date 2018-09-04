@@ -172,6 +172,31 @@ gst_gl_window_eagl_send_message_async (GstGLWindow * window,
     g_thread_unref (thread);
 }
 
+struct get_layer
+{
+  gpointer view;
+  gpointer layer;
+};
+
+static void
+get_layer_func (gpointer data)
+{
+  struct get_layer *layer = data;
+
+  layer->layer = (__bridge gpointer) [(__bridge UIView *) layer->view layer];
+}
+
+static CAEAGLLayer *
+get_layer (UIView *view)
+{
+  struct get_layer layer = { NULL, };
+
+  layer.view = (__bridge gpointer) view;
+  _invoke_on_main_sync (get_layer_func, &layer, NULL);
+
+  return (__bridge CAEAGLLayer *) layer.layer;
+}
+
 static void
 draw_cb (gpointer data)
 {
@@ -184,7 +209,7 @@ draw_cb (gpointer data)
     CGSize size;
     CAEAGLLayer *eagl_layer;
 
-    eagl_layer = (CAEAGLLayer *)[GS_GL_WINDOW_EAGL_VIEW(window_eagl) layer];
+    eagl_layer = get_layer (GS_GL_WINDOW_EAGL_VIEW(window_eagl));
     size = eagl_layer.frame.size;
 
     size = CGSizeMake (size.width * eagl_layer.contentsScale,  size.height * eagl_layer.contentsScale);
@@ -218,4 +243,20 @@ static void
 gst_gl_window_eagl_draw (GstGLWindow * window)
 {
   gst_gl_window_send_message (window, (GstGLWindowCB) draw_cb, window);
+}
+
+void
+_invoke_on_main_sync (GstGLWindowCB func, gpointer data, GDestroyNotify notify)
+{
+  if ([NSThread isMainThread]) {
+    func (data);
+    if (notify)
+      notify (data);
+  } else {
+    dispatch_sync (dispatch_get_main_queue (), ^{
+      func (data);
+      if (notify)
+        notify (data);
+    });
+  }
 }
