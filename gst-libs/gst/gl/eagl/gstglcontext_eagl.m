@@ -29,6 +29,7 @@
 
 #include "gstglcontext_eagl.h"
 #include "../gstglcontext_private.h"
+#include "gstglwindow_eagl.h"
 
 #define GST_CAT_DEFAULT gst_gl_context_debug
 
@@ -147,6 +148,38 @@ gst_gl_context_eagl_release_layer (GstGLContext * context)
   }
 }
 
+struct get_layer
+{
+  gpointer view;
+  gpointer layer;
+  CGRect frame;
+};
+
+static void
+get_layer_frame_func (gpointer data)
+{
+  struct get_layer *layer = data;
+  UIView *view = (__bridge UIView *) layer->view;
+
+  layer->layer = (__bridge gpointer) [view layer];
+  layer->frame = [view frame];
+}
+
+static void
+get_layer_and_frame (UIView *view, CAEAGLLayer ** out_layer,  CGRect * out_frame)
+{
+  struct get_layer layer = { NULL, };
+
+  layer.view = (__bridge gpointer) view;
+
+  _invoke_on_main_sync (get_layer_frame_func, &layer, NULL);
+
+  if (out_layer)
+    *out_layer = (__bridge CAEAGLLayer *) layer.layer;
+  if (out_frame)
+    *out_frame = layer.frame;
+}
+
 void
 gst_gl_context_eagl_update_layer (GstGLContext * context)
 {
@@ -161,6 +194,8 @@ gst_gl_context_eagl_update_layer (GstGLContext * context)
   GstGLContextEaglPrivate *priv = context_eagl->priv;
   UIView *window_handle = nil;
   GstGLWindow *window = gst_gl_context_get_window (context);
+  CGRect frame;
+
   if (window)
     window_handle = (__bridge UIView *)((void *)gst_gl_window_get_window_handle (window));
 
@@ -169,13 +204,14 @@ gst_gl_context_eagl_update_layer (GstGLContext * context)
     goto out;
   }
 
+  get_layer_and_frame (window_handle, &eagl_layer, &frame);
+
   GST_INFO_OBJECT (context, "updating layer, frame %fx%f",
-      window_handle.frame.size.width, window_handle.frame.size.height);
+      frame.size.width, frame.size.height);
 
   if (priv->eagl_layer)
     gst_gl_context_eagl_release_layer (context);
 
-  eagl_layer = (CAEAGLLayer *)[window_handle layer];
   [EAGLContext setCurrentContext:GS_GL_CONTEXT_EAGL_CONTEXT(context_eagl)];
 
   /* Allocate framebuffer */
@@ -293,13 +329,13 @@ gst_gl_context_eagl_choose_format (GstGLContext * context, GError ** error)
     gst_object_unref (window);
     return TRUE;
   }
-  
+
   CAEAGLLayer *eagl_layer;
   NSDictionary * dict =[NSDictionary dictionaryWithObjectsAndKeys:
       [NSNumber numberWithBool:NO], kEAGLDrawablePropertyRetainedBacking,
       kEAGLColorFormatRGBA8, kEAGLDrawablePropertyColorFormat, nil];
 
-  eagl_layer = (CAEAGLLayer *)[window_handle layer];
+  get_layer_and_frame (window_handle, &eagl_layer, NULL);
   [eagl_layer setOpaque:YES];
   [eagl_layer setDrawableProperties:dict];
 

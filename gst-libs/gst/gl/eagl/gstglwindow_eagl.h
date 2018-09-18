@@ -48,7 +48,7 @@ struct _GstGLWindowEagl {
 
   /*< private >*/
   GstGLWindowEaglPrivate *priv;
-  
+
   gpointer _reserved[GST_PADDING];
 };
 
@@ -63,6 +63,8 @@ struct _GstGLWindowEaglClass {
 GType gst_gl_window_eagl_get_type     (void);
 
 GstGLWindowEagl * gst_gl_window_eagl_new (GstGLDisplay * display);
+
+void         _invoke_on_main_sync (GstGLWindowCB func, gpointer data, GDestroyNotify notify);
 
 G_END_DECLS
 
